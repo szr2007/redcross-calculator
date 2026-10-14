@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Sleep times</title>
+<style>
+  :root {
+    color-scheme: light;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --bg: #fff; --text: #171717; --muted: #636363; --line: #e8e8e8;
+    --control: #f4f4f4; --selected: #171717;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); }
+  main { max-width: 420px; margin: 0 auto; padding: max(26px, env(safe-area-inset-top)) 22px max(24px, env(safe-area-inset-bottom)); }
+  h1 { font-size: 21px; font-weight: 650; letter-spacing: -.02em; margin: 0 0 27px; }
+  .field { margin-bottom: 21px; }
+  label, .fieldname { display: block; font-size: 14px; font-weight: 550; margin: 0 0 9px; }
+  input[type="time"] { display: block; width: 100%; min-height: 55px; padding: 10px 15px; border: 1px solid #dedede; border-radius: 10px; font: 650 26px/1.2 inherit; font-size: 26px; font-weight: 650; background: var(--control); color: var(--text); font-variant-numeric: tabular-nums; }
+  .choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .choice { min-height: 54px; padding: 7px 2px; border: 1px solid #dedede; background: var(--control); border-radius: 9px; font: 600 15px system-ui, sans-serif; color: var(--text); cursor: pointer; }
+  .choice small { display: block; margin-top: 2px; font-size: 11px; font-weight: 500; }
+  .choice[aria-pressed="true"] { color: #fff; background: var(--selected); border-color: var(--selected); }
+  .choice:focus-visible, summary:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #6d9cff; outline-offset: 2px; }
+  .outputs { margin: 29px 0 5px; border-top: 1px solid var(--line); }
+  .result { display:flex; align-items:center; justify-content:space-between; gap:16px; border-bottom:1px solid var(--line); padding: 17px 0; }
+  .result .name { font-size:15px; }
+  .result .time { font-size: 25px; line-height:1.15; font-weight:650; letter-spacing:-.035em; font-variant-numeric: tabular-nums; white-space:nowrap; }
+  .result:first-child .time { font-weight: 750; }
+  details { margin-top:20px; }
+  summary { cursor:pointer; color: var(--muted); font-size: 14px; padding: 11px 0; list-style: none; touch-action: manipulation; }
+  summary::-webkit-details-marker { display:none; }
+  summary::after { content: '⌄'; margin-left: 7px; }
+  details[open] summary::after { content: '⌃'; }
+  .settings { border-top:1px solid var(--line); padding-top:15px; }
+  .setting { display:flex; align-items:center; justify-content:space-between; gap:15px; padding: 7px 0; }
+  .setting label { margin:0; font-size:14px; font-weight:400; }
+  select { min-width: 116px; font: inherit; font-size:14px; padding:10px; border:1px solid #dedede; border-radius:8px; color:var(--text); background:var(--control); }
+  @media (prefers-color-scheme: dark) {
+    :root { color-scheme:dark; --bg:#151515; --text:#f5f5f5; --muted:#aaa; --line:#393939; --control:#252525; --selected:#f5f5f5; }
+    input[type="time"], select, .choice { border-color:#494949; }
+    .choice[aria-pressed="true"] { color:#141414; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Sleep times</h1>
+  <div class="field">
+    <label for="leave">Leave for work at</label>
+    <input id="leave" type="time" value="06:30" step="60">
+  </div>
+  <div class="field">
+    <div class="fieldname" id="sleep-label">Sleep duration</div>
+    <div class="choices" role="group" aria-labelledby="sleep-label">
+      <button class="choice" type="button" data-minutes="540" aria-pressed="true">9 hours</button>
+      <button class="choice" type="button" data-minutes="450" aria-pressed="false">7.5 hours</button>
+      <button class="choice" type="button" data-minutes="360" aria-pressed="false">6 hours<small>Emergency</small></button>
+    </div>
+  </div>
+
+  <div class="outputs" aria-live="polite" aria-label="Calculated times">
+    <div class="result"><span class="name">Go to bed</span><output class="time" id="bedtime">20:30</output></div>
+    <div class="result"><span class="name">Wake-up alarm</span><output class="time" id="wake">05:45</output></div>
+    <div class="result"><span class="name">Backup alarm</span><output class="time" id="backup">05:55</output></div>
+    <div class="result"><span class="name">Leave alarm</span><output class="time" id="departure">06:30</output></div>
+  </div>
+
+  <details>
+    <summary>Adjust timing</summary>
+    <div class="settings">
+      <div class="setting">
+        <label for="prepare">Getting ready</label>
+        <select id="prepare">
+          <option value="15">15 min</option><option value="20">20 min</option><option value="30">30 min</option><option value="45" selected>45 min</option><option value="60">60 min</option><option value="75">75 min</option><option value="90">90 min</option>
+        </select>
+      </div>
+      <div class="setting">
+        <label for="delay">Backup after waking</label>
+        <select id="delay">
+          <option value="5">5 min</option><option value="10" selected>10 min</option><option value="15">15 min</option><option value="20">20 min</option>
+        </select>
+      </div>
+      <div class="setting">
+        <label for="onset">Time to fall asleep</label>
+        <select id="onset">
+          <option value="0">0 min</option><option value="10">10 min</option><option value="15" selected>15 min</option><option value="20">20 min</option><option value="30">30 min</option>
+        </select>
+      </div>
+    </div>
+  </details>
+</main>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const ids = ['leave', 'prepare', 'delay', 'onset'];
+  let sleep = 540;
+  const format = n => {
+    const t = ((n % 1440) + 1440) % 1440;
+    return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+  };
+  try {
+    const saved = JSON.parse(localStorage.getItem('sleep-times-v2') || '{}');
+    ids.forEach(id => { if (saved[id] !== undefined) $(id).value = saved[id]; });
+    if ([540, 450, 360].includes(saved.sleep)) sleep = saved.sleep;
+  } catch (_) {}
+  function update() {
+    const match = /^(\d{1,2}):(\d{2})$/.exec($('leave').value);
+    if (!match || +match[1] > 23 || +match[2] > 59) return;
+    const leave = +match[1] * 60 + +match[2];
+    const wake = leave - +$('prepare').value;
+    $('bedtime').textContent = format(wake - sleep - +$('onset').value);
+    $('wake').textContent = format(wake);
+    $('backup').textContent = format(wake + +$('delay').value);
+    $('departure').textContent = format(leave);
+    document.querySelectorAll('[data-minutes]').forEach(button => {
+      button.setAttribute('aria-pressed', String(+button.dataset.minutes === sleep));
+    });
+    try { localStorage.setItem('sleep-times-v2', JSON.stringify({ sleep, ...Object.fromEntries(ids.map(id => [id, $(id).value])) })); } catch (_) {}
+  }
+  ids.forEach(id => {
+    $(id).addEventListener('input', update);
+    $(id).addEventListener('change', update);
+  });
+  document.querySelectorAll('[data-minutes]').forEach(button => {
+    button.addEventListener('click', () => { sleep = +button.dataset.minutes; update(); });
+  });
+  update();
+})();
+</script>
+</body>
+</html>
